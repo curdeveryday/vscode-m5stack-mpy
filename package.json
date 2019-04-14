@@ -35,6 +35,6 @@
 		"@types/mocha": "^2.2.42"
 	},
 	"dependencies": {
-		"serialport": "^7.1.4"
+		"eventemitter2": "^5.0.1"
 	}
 }
