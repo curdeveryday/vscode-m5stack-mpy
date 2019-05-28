@@ -1,4 +1,4 @@
-const SerialPort = require('serialport');
+const { SerialPort } = require('../vendor/node-usb-native/lib');
 
 let Serialport = {};
 
@@ -133,7 +133,7 @@ Serialport.getCOMs = function() {
                 resolve([]);
                 return;
             }
-            resolve(ports.map(p => p.comName));
+            resolve(ports);
         });
     });
 }
