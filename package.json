@@ -1,8 +1,18 @@
 {
-	"name": "vscode-m5stack-mpyreader",
-	"displayName": "vscode-m5stack-mpyreader",
-	"description": "A extension to manage files for M5Stack Micropython system.",
-	"version": "0.0.1",
+	"name": "vscode-m5stack-mpy",
+	"displayName": "vscode-m5stack-mpy",
+	"description": "A extension for M5Stack Micropython system.",
+	"publisher": "curdeveryday",
+	"repository": {
+		"url": "https://github.com/curdeveryday/vscode-m5stack-mpy.git",
+		"type": "git"
+	},
+	"version": "1.0.0",
+	"keywords": [
+		"m5stack",
+		"mpy"
+	],
+	"icon": "resources/logo.png",
 	"engines": {
 		"vscode": "^1.33.0"
 	},
@@ -21,7 +31,112 @@
 					"name": "M5Stack Device"
 				}
 			]
-		}
+		},
+		"menus": {
+			"editor/context": [
+				{
+					"command": "extension.reset.device",
+					"when": "resourceScheme == m5stackfs",
+					"group": "navigation"
+				},
+				{
+					"command": "treeview.item.run",
+					"when": "resourceScheme == m5stackfs",
+					"group": "navigation"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "treeview.item.run",
+					"when": "resourceExtname == .py",
+					"group": "navigation"
+				},
+				{
+					"command": "treeview.item.remove",
+					"when": "resourceScheme == m5stackfs",
+					"group": "navigation"
+				}
+			],
+			"view/title": [],
+			"view/item/context": [
+				{
+					"command": "treeview.item.remove",
+					"when": "view == m5stack && viewItem == file",
+					"group": "inline"
+				},
+				{
+					"command": "treeview.item.create",
+					"when": "view == m5stack && viewItem == folder",
+					"group": "inline"
+				},
+				{
+					"command": "treeview.item.upload",
+					"when": "view == m5stack && viewItem == folder",
+					"group": "inline"
+				},
+				{
+					"command": "treeview.item.refresh",
+					"when": "view == m5stack && viewItem == COM",
+					"group": "inline"
+				},
+				{
+					"command": "treeview.item.create",
+					"when": "view == m5stack && viewItem == COM",
+					"group": "inline"
+				},
+				{
+					"command": "treeview.item.upload",
+					"when": "view == m5stack && viewItem == COM",
+					"group": "inline"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "extension.reset.device",
+				"title": "Reset M5Stack"
+			},
+			{
+				"command": "treeview.item.run",
+				"title": "Run in M5Stack",
+				"icon": {
+					"light": "resources/light/run.svg",
+					"dark": "resources/dark/run.svg"
+				}
+			},
+			{
+				"command": "treeview.item.refresh",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			},
+			{
+				"command": "treeview.item.remove",
+				"title": "Remove",
+				"icon": {
+					"light": "resources/light/remove.svg",
+					"dark": "resources/dark/remove.svg"
+				}
+			},
+			{
+				"command": "treeview.item.create",
+				"title": "create",
+				"icon": {
+					"light": "resources/light/create.svg",
+					"dark": "resources/dark/create.svg"
+				}
+			},
+			{
+				"command": "treeview.item.upload",
+				"title": "upload",
+				"icon": {
+					"light": "resources/light/upload.svg",
+					"dark": "resources/dark/upload.svg"
+				}
+			}
+		]
 	},
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install",
@@ -32,9 +147,10 @@
 		"@types/node": "^10.12.21",
 		"eslint": "^5.13.0",
 		"typescript": "^3.3.1",
-		"vscode": "^1.1.28"
+		"vscode": "^1.1.34"
 	},
 	"dependencies": {
-		"eventemitter2": "^5.0.1"
+		"eventemitter2": "^5.0.1",
+		"glob": "^7.1.4"
 	}
 }

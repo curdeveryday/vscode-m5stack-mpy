@@ -1,3 +1,11 @@
+/**
+ * M5Stack UIFlow USB Mode
+ * 
+ * Format
+ * 
+ * [HEAD DATA](3)[COMMAND](1)[STATE](1)[DATA](N)[CRC](2)[END DATA](3) 
+ */
+
 const { SerialPort } = require('../vendor/node-usb-native/lib');
 
 let Serialport = {};
@@ -28,6 +36,8 @@ const command_code = {
 const defaultOpts = {
     baudRate: 115200
 };
+
+const PORT = {};
 
 /**
  * 数据转换
@@ -63,64 +73,64 @@ const cover_crc = function(data) {
 }
 
 /**
+ * 判断是否接受完成（校对包头包尾数据）
+ * @param {*} buffer 
+ */
+const checkReceiveCompleted = function(buffer) {
+    let head_buf = Buffer.from(head_data);
+    let foot_buf = Buffer.from(foot_data);
+    if(head_buf.compare(buffer.slice(0, 3)) == 0 && foot_buf.compare(buffer.slice(-3)) == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * 绑定读取事件回调
  * @param {*} com 串口实例
  */
 const bindReadEvent = function(com, cb) {
-    if(com.on) {
-        let result = Buffer.from([]);
-        let head_data_checker = Buffer.alloc(3, 0x00);
-        let foot_data_checker = Buffer.alloc(3, 0x00);
-        let is_start = false;
-        let is_end = false;
-        com.on('readable', () => {
-            while(com.readable) {
-                let data = com.read(1);
-                if(data == null) {
-                    break;
-                }
-                if(!is_start) {
-                    head_data_checker[0] = head_data_checker[1];
-                    head_data_checker[1] = head_data_checker[2];
-                    head_data_checker[2] = data[0];
-                    if(head_data_checker.compare(Buffer.from(head_data)) == 0) {
-                        is_start = true;
-                    } else {
-                        continue;
+    let result = Buffer.from([]);
+    com.on('data', (chunk) => {
+        result = Buffer.concat([result, chunk]);
+        if(result.slice(0, 3).compare(Buffer.from(head_data)) != 0) {
+            console.log('[Error] boot start failed.');
+            com.close(err => cb(false));
+            return;
+        }
+        if(checkReceiveCompleted(result)) {
+            let pre_data = result.slice(0, -5);
+            if(crc16(pre_data, pre_data.length) == result.slice(-5, -3).readUInt16LE(0)) {
+                com.close((err) => {
+                    if(err) {
+                        console.log(err);
+                        cb(false);
+                        return;
                     }
-                }
-                if(is_start && !is_end) {
-                    foot_data_checker[0] = foot_data_checker[1];
-                    foot_data_checker[1] = foot_data_checker[2];
-                    foot_data_checker[2] = data[0];
-                    if(foot_data_checker.compare(Buffer.from(foot_data)) == 0) {
-                        is_end = true;
-                        result = result.slice(1, result.length - 2);
-                        if(crc16(Buffer.concat([Buffer.from(head_data), result.slice(0, -2)]), 0)) {
-                            if(result[1] == 0x00) {
-                                result = result.slice(2, -2);
-                            } else {
-                                result = null;
-                            }
-                        } else {
-                            result = null;
-                        }
-                        com.close(err => {
-                            if(err) {
-                                
-                            }
-                            cb(result);
-                        });
-                        break;
+                    if(result[4] == 0x00) {
+                        cb(result.slice(5, -5));
                     } else {
-                        result = Buffer.concat([result, data]);
+                        cb(false);
                     }
-                }
+                });
+                return;
             }
-        });
-    } else {
-        cb(false);
+            com.close((err) => {
+                console.log('Can not pass CRC.');
+                if(err) {
+                    console.log(err);
+                }
+                cb(false);
+            });
+        }
+    });
+}
+
+const isUsingPort = function(com) {
+    if(PORT[com]) {
+        return PORT[com].isOpen();
     }
+    return false;
 }
 
 /**
@@ -145,14 +155,19 @@ Serialport.getCOMs = function() {
  */
 Serialport.readFile = function(com, filename) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(createDataBuffer(command_code.GET_FILE, filename));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
+                console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
 }
@@ -164,14 +179,19 @@ Serialport.readFile = function(com, filename) {
  */
 Serialport.listDir = function(com, dirname) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(createDataBuffer(command_code.LIST_DIR, dirname));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
+                console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
 }
@@ -183,15 +203,19 @@ Serialport.listDir = function(com, dirname) {
  */
 Serialport.exec = function(com, code) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(createDataBuffer(command_code.EXEC, code));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
                 console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
 }
@@ -202,14 +226,19 @@ Serialport.exec = function(com, code) {
  */
 Serialport.getInfo = function(com) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(createDataBuffer(command_code.GET_INFO, '0'));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
+                console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
 }
@@ -223,14 +252,19 @@ Serialport.getInfo = function(com) {
  */
 Serialport.download = function(com, filename, content, flag) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(Buffer.concat([Buffer.from([command_code.DOWNLOAD_FILE]), Buffer.from(filename), Buffer.from([0x00]), Buffer.from([flag]), Buffer.from(content)]));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
+                console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
 }
@@ -270,16 +304,28 @@ Serialport.bulkDownload = async function(com, filename, content) {
  */
 Serialport.removeFile = function(com, filename) {
     return new Promise(resolve => {
+        if(isUsingPort()) {
+            resolve(false);
+            return;
+        }
         let data = cover_crc(createDataBuffer(command_code.REMOVE_FILE, filename));
-        let port = new SerialPort(com, defaultOpts, function(err) {
+        PORT[com] = new SerialPort(com, defaultOpts, function(err) {
             if(err) {
+                console.log(err);
                 resolve(false);
                 return;
             }
-            bindReadEvent(port, resolve);
-            port.write(data);
+            bindReadEvent(PORT[com], resolve);
+            PORT[com].write(data);
         });
     });
+}
+
+Serialport.disconnect = function(com) {
+    if(isUsingPort()) {
+        console.log(`${com} is using.`);
+        PORT[com].close(err => PORT[com] = null);
+    }
 }
 
 module.exports = Serialport;
