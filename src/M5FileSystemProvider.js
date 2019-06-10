@@ -29,7 +29,7 @@ const M5FileSystemProvider = function() {
 		writeFile: async uri => {
             if(!files[uri.path]) {
                 let args = uri.path.split('/');
-                let port = args[1];
+                let port = process.platform == 'win32' ? args[1] : `/dev/${args[1]}`;
                 let filepath = `/${args.slice(2).join('/')}`;
                 let text = await serailportProvider.readFile(port, filepath);
                 if(text === false) {
@@ -48,7 +48,7 @@ const M5FileSystemProvider = function() {
         saveFile: async (uri, text) => {
             files[uri.path] = Buffer.from(text);
             let args = uri.path.split('/');
-            let port = args[1];
+            let port = process.platform == 'win32' ? args[1] : `/dev/${args[1]}`;
             let filepath = `/${args.slice(2).join('/')}`;
             vscode.window.showWarningMessage(`Saving code, don't close the window.`);
             let r = await serailportProvider.download(port, filepath, text, 0x01);

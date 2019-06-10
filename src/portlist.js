@@ -1,7 +1,6 @@
 const vscode = require('vscode');
 const serailportProvider = require('./serialport');
 const TreeDataProvider = require('./TreeDataProvider');
-const FileType = require('./domain/FileType');
 const M5fs = require('./M5FileSystemProvider');
 const fs = require('fs');
 const path = require('path');
@@ -111,7 +110,7 @@ PortList.prototype.readFile = async function(port, filepath) {
 PortList.prototype.reset = async function() {
     let uri = vscode.window.activeTextEditor.document.uri;
     let args = uri.path.split('/');
-    let port = args[1];
+    let port = process.platform == 'win32' ? args[1] : `/dev/${args[1]}`;
     let r = await serailportProvider.exec(port, 'machine.reset()');
     if(r == false) {
         vscode.window.showErrorMessage('Reset device failed.');
@@ -124,7 +123,7 @@ PortList.prototype.run = async function() {
     let uri = vscode.window.activeTextEditor.document.uri;
     let text = vscode.window.activeTextEditor.document.getText();
     let args = uri.path.split('/');
-    let port = args[1];
+    let port = process.platform == 'win32' ? args[1] : `/dev/${args[1]}`;
     let r = await serailportProvider.exec(port, text);
     if(r == false) {
         vscode.window.showErrorMessage('Run failed.');
@@ -157,7 +156,7 @@ PortList.prototype.remove = async function(ev) {
     let _ev = Object.assign({}, ev);
     if(ev.path != undefined) {
         let args = ev.path.split('/');
-        let port = args[1];
+        let port = process.platform == 'win32' ? args[1] : `/dev/${args[1]}`;
         _ev.com = port;
         _ev.label = args[args.length - 1];
         _ev.parent = `/${args.slice(2, args.length -1).join('/')}`;
@@ -180,7 +179,7 @@ PortList.prototype.upload = async function(ev) {
     let file = await vscode.window.showOpenDialog({});
     if(file == undefined) return;
     let filename = file[0].path.split('/').slice(-1).toString();
-    let content = fs.readFileSync(path.join(file[0].path.slice(1)));
+    let content = process.platform == 'win32' ? fs.readFileSync(path.join(file[0].path.slice(1))) : fs.readFileSync(path.join(file[0].path));
     let r = false;
     vscode.window.showWarningMessage(`"${ filename }" Uploading, don't close the window.`);
     if(ev.contextValue == 'COM') {

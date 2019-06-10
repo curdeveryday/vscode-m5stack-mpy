@@ -352,7 +352,9 @@ function endProvider (document, position, token, context) {
                 completion2.detail = 'Array for gyro Yaw, Pitch, Roll values';
                 completion2.insertText = new vscode.SnippetString('gyro[${1|0,1,2|}]');
                 return [
-                    completion0
+                    completion0,
+                    completion1,
+                    completion2
                 ];
         }
     }
