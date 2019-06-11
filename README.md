@@ -12,7 +12,7 @@ A extension for M5Stack Micropython system.
 - Install vscode-m5stack-mpy.
 - Set M5Stack(UIFlow) in USB Mode.
 
-![screenshot](https://github.com/curdeveryday/vscode-m5stack-mpy/raw/master/resources/quick-start-7.png)
+![screenshot](./resources/quick-start-7.JPG)
 
 - Click "Add M5Stack device" and select the correct serial port of M5Stack.
 
