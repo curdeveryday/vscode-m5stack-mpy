@@ -39,9 +39,9 @@ PortList.prototype.selectPorts = async function() {
     let comsInfo = await serailportProvider.getCOMs();
     portList = comsInfo.map(com => {
         return {
-            label: com.comName,
+            label: com.path,
             description: com.manufacturer,
-            picked: selectedPorts.findIndex(p => p.label == com.comName) > -1
+            picked: selectedPorts.findIndex(p => p.label == com.path) > -1
         }
     });
     selectedPorts = await vscode.window.showQuickPick(portList, { canPickMany: true }) || selectedPorts;

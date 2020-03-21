@@ -6,7 +6,7 @@
  * [HEAD DATA](3)[COMMAND](1)[STATE](1)[DATA](N)[CRC](2)[END DATA](3) 
  */
 
-const { SerialPort } = require('../vendor/node-usb-native/lib');
+const { SerialPort } = require('usb-native');
 
 let Serialport = {};
 
@@ -138,13 +138,10 @@ const isUsingPort = function(com) {
  */
 Serialport.getCOMs = function() {
     return new Promise(resolve => {
-        SerialPort.list((err, ports) => {
-            if(err) {
-                resolve([]);
-                return;
-            }
-            resolve(ports);
-        });
+        SerialPort.list().then(
+            ports => resolve(ports),
+            err => resolve([])
+        )
     });
 }
 
