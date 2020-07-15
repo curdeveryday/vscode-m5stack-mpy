@@ -24,7 +24,12 @@ TreeDataProvider.prototype.getChildren = async function(element) {
             element.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             return [];
         }
-        let root_dir = dir.toString().split(',').filter(item => item != '');
+        let root_dir = [];
+        if(dir.toString().indexOf(' ') > -1) {
+            root_dir = dir.toString().split(' ').filter(item => item != '');
+        } else {
+            root_dir = dir.toString().split(',').filter(item => item != '');
+        }
         let tree_data = root_dir.map(item => {
             if(item.indexOf('.') > -1) {
                 return new FileType.File(element.label, item);
@@ -37,7 +42,12 @@ TreeDataProvider.prototype.getChildren = async function(element) {
     }
     else {
         let dir = await serailportProvider.listDir(element.com, `${element.parent}/${element.label}`);
-        let root_dir = dir.toString().split(',').filter(item => item != '');
+        let root_dir = [];
+        if(dir.toString().indexOf(' ') > -1) {
+            root_dir = dir.toString().split(' ').filter(item => item != '');
+        } else {
+            root_dir = dir.toString().split(',').filter(item => item != '');
+        }
         let tree_data = root_dir.map(item => {
             if(item.indexOf('.') > -1) {
                 return new FileType.File(element.com, item);
