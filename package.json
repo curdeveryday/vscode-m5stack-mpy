@@ -7,7 +7,7 @@
 		"url": "https://github.com/curdeveryday/vscode-m5stack-mpy.git",
 		"type": "git"
 	},
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"keywords": [
 		"m5stack",
 		"mpy"
