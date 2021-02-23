@@ -14,7 +14,7 @@
 	],
 	"icon": "resources/logo.png",
 	"engines": {
-		"vscode": "^1.33.0"
+		"vscode": "^1.48.0"
 	},
 	"categories": [
 		"Other"
@@ -139,19 +139,20 @@
 		]
 	},
 	"scripts": {
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "node ./node_modules/vscode/bin/test"
+		"postinstall": "node node_modules/node-usb-native/scripts/rebuild-serialport.js",
+		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
-		"@types/node": "^10.12.21",
+		"@types/node": "^12.18.3",
+		"@types/vscode": "^1.48.0",
 		"eslint": "^5.13.0",
 		"typescript": "^3.3.1",
-		"vscode": "^1.1.34"
+		"vscode-test": "^1.3.0"
 	},
 	"dependencies": {
 		"eventemitter2": "^5.0.1",
 		"glob": "^7.1.6",
-		"usb-native": "^5.0.12"
+        	"node-usb-native": "^0.0.19"
 	}
 }
