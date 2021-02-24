@@ -6,7 +6,7 @@
  * [HEAD DATA](3)[COMMAND](1)[STATE](1)[DATA](N)[CRC](2)[END DATA](3) 
  */
 
-const { SerialPort } = require('usb-native');
+const { SerialPort } = require('node-usb-native');
 
 let Serialport = {};
 
