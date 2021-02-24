@@ -7,7 +7,7 @@
 		"url": "https://github.com/curdeveryday/vscode-m5stack-mpy.git",
 		"type": "git"
 	},
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"keywords": [
 		"m5stack",
 		"mpy"
@@ -153,6 +153,6 @@
 	"dependencies": {
 		"eventemitter2": "^5.0.1",
 		"glob": "^7.1.6",
-        	"node-usb-native": "^0.0.19"
+		"node-usb-native": "^0.0.19"
 	}
 }
