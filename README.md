@@ -40,8 +40,16 @@ A extension for M5Stack Micropython system.
 - Auto Completion of Units and Modules.
 - Display tips when hover on it.
 
-## Development Notes
-- When VSCode updates electron version, it should rebuild the serialport module in `/node_modules/@serialport/bingdings` and `/node_modules/usb-detection`. Move the new bingding.node and detection.node in `/node_modules/usb-native/native`.
+## Contributions
+To verify changes of this plugin you build the plugin with
 ```
-node-gyp rebuild --target=${ELECTRON_VERSION} --arch=x64 --dist-url=https://atom.io/download/electron
+git clean -fdX
+yarn cache clean
+yarn
 ```
+Then you start vscode with this directory as argument like this
+```
+code ./
+```
+Then you hit F5 and verify that it works.
+See more on https://code.visualstudio.com/api
