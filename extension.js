@@ -28,7 +28,6 @@ function activate(context) {
 	context.subscriptions.push(M5Completion.StartProvider, M5Completion.EndProvider);
 
 }
-exports.activate = activate;
 
 // this method is called when your extension is deactivated
 function deactivate() {}
