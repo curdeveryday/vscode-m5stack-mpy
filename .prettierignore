@@ -1,0 +1,8 @@
+node_modules/
+*.xml
+*.xsd
+helm/
+dist/
+test-results/
+package.json
+pnpm-lock.yaml

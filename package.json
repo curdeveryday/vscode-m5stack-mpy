@@ -7,14 +7,13 @@
 		"url": "https://github.com/curdeveryday/vscode-m5stack-mpy.git",
 		"type": "git"
 	},
-	"version": "1.0.13",
 	"keywords": [
 		"m5stack",
 		"mpy"
 	],
-	"icon": "resources/logo.png",
+	"version": "1.1.0",
 	"engines": {
-		"vscode": "^1.48.0"
+		"vscode": "^1.62.0"
 	},
 	"categories": [
 		"Other"
@@ -22,7 +21,8 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./extension.js",
+	"icon": "resources/logo.png",
+	"main": "./dist/extension.js",
 	"contributes": {
 		"views": {
 			"explorer": [
@@ -40,19 +40,19 @@
 					"group": "navigation"
 				},
 				{
-					"command": "treeview.item.run",
+					"command": "m5stack.itemRun",
 					"when": "resourceScheme == m5stackfs",
 					"group": "navigation"
 				}
 			],
 			"editor/title": [
 				{
-					"command": "treeview.item.run",
+					"command": "m5stack.itemRun",
 					"when": "resourceExtname == .py",
 					"group": "navigation"
 				},
 				{
-					"command": "treeview.item.remove",
+					"command": "m5stack.deleteEntry",
 					"when": "resourceScheme == m5stackfs",
 					"group": "navigation"
 				}
@@ -60,32 +60,32 @@
 			"view/title": [],
 			"view/item/context": [
 				{
-					"command": "treeview.item.remove",
+					"command": "m5stack.deleteEntry",
 					"when": "view == m5stack && viewItem == file",
 					"group": "inline"
 				},
 				{
-					"command": "treeview.item.create",
+					"command": "m5stack.addEntry",
 					"when": "view == m5stack && viewItem == folder",
 					"group": "inline"
 				},
 				{
-					"command": "treeview.item.upload",
+					"command": "m5stack.refreshEntry",
+					"when": "view == m5stack && viewItem == COM",
+					"group": "inline"
+				},
+				{
+					"command": "m5stack.addEntry",
+					"when": "view == m5stack && viewItem == COM",
+					"group": "inline"
+				},
+				{
+					"command": "m5stack.itemUpload",
 					"when": "view == m5stack && viewItem == folder",
 					"group": "inline"
 				},
 				{
-					"command": "treeview.item.refresh",
-					"when": "view == m5stack && viewItem == COM",
-					"group": "inline"
-				},
-				{
-					"command": "treeview.item.create",
-					"when": "view == m5stack && viewItem == COM",
-					"group": "inline"
-				},
-				{
-					"command": "treeview.item.upload",
+					"command": "m5stack.itemUpload",
 					"when": "view == m5stack && viewItem == COM",
 					"group": "inline"
 				}
@@ -97,7 +97,7 @@
 				"title": "Reset M5Stack"
 			},
 			{
-				"command": "treeview.item.run",
+				"command": "m5stack.itemRun",
 				"title": "Run in M5Stack",
 				"icon": {
 					"light": "resources/light/run.svg",
@@ -105,7 +105,7 @@
 				}
 			},
 			{
-				"command": "treeview.item.refresh",
+				"command": "m5stack.refreshEntry",
 				"title": "Refresh",
 				"icon": {
 					"light": "resources/light/refresh.svg",
@@ -113,7 +113,7 @@
 				}
 			},
 			{
-				"command": "treeview.item.remove",
+				"command": "m5stack.deleteEntry",
 				"title": "Remove",
 				"icon": {
 					"light": "resources/light/remove.svg",
@@ -121,7 +121,7 @@
 				}
 			},
 			{
-				"command": "treeview.item.create",
+				"command": "m5stack.addEntry",
 				"title": "create",
 				"icon": {
 					"light": "resources/light/create.svg",
@@ -129,7 +129,7 @@
 				}
 			},
 			{
-				"command": "treeview.item.upload",
+				"command": "m5stack.itemUpload",
 				"title": "upload",
 				"icon": {
 					"light": "resources/light/upload.svg",
@@ -139,20 +139,41 @@
 		]
 	},
 	"scripts": {
-		"postinstall": "node node_modules/node-usb-native/scripts/rebuild-serialport.js",
-		"test": "node ./out/test/runTest.js"
+		"compile": "webpack",
+		"compile-tests": "tsc -p . --outDir out",
+		"lint": "eslint src --ext ts",
+		"package": "webpack --mode production --devtool hidden-source-map",
+		"pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+		"postinstall": "./build.sh",
+		"test": "node ./out/test/runTest.js",
+		"vscode:prepublish": "yarn run package",
+		"watch": "webpack --watch",
+		"watch-tests": "tsc -p . -w --outDir out"
 	},
 	"devDependencies": {
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^12.18.3",
-		"@types/vscode": "^1.48.0",
-		"eslint": "^5.13.0",
-		"typescript": "^3.3.1",
-		"vscode-test": "^1.3.0"
+		"@types/glob": "^7.1.4",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "14.x",
+		"@types/serialport": "^8.0.2",
+		"@types/vscode": "^1.62.0",
+		"@typescript-eslint/eslint-plugin": "^5.4.0",
+		"@typescript-eslint/parser": "^5.1.0",
+		"electron": "13.5.2",
+		"electron-rebuild": "^3.2.5",
+		"eslint": "^8.1.0",
+		"eslint-config-airbnb-typescript": "^16.0.0",
+		"eslint-config-prettier": "^8.3.0",
+		"eslint-plugin-import": "^2.25.2",
+		"eslint-plugin-mocha": "^9.0.0",
+		"eslint-plugin-prettier": "^4.0.0",
+		"mocha": "^9.1.3",
+		"prettier": "^2.4.1",
+		"ts-loader": "^9.2.5",
+		"typescript": "^4.4.4",
+		"webpack": "^5.52.1",
+		"webpack-cli": "^4.8.0"
 	},
 	"dependencies": {
-		"eventemitter2": "^5.0.1",
-		"glob": "^7.1.6",
-		"node-usb-native": "^0.0.19"
+		"serialport": "^9.2.7"
 	}
 }
