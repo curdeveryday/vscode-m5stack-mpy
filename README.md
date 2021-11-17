@@ -1,7 +1,9 @@
 # vscode-m5stack-mpy
+
 A extension for M5Stack Micropython system.
 
 ## Features
+
 - Write/Read files in M5Stack Device
 - Syntax-highlighting
 - Snippet
@@ -9,6 +11,7 @@ A extension for M5Stack Micropython system.
 - Debugging
 
 ## Quick Start
+
 - Install vscode-m5stack-mpy.
 - Set M5Stack(UIFlow) in USB Mode.
 
@@ -37,19 +40,25 @@ A extension for M5Stack Micropython system.
 ![screenshot](https://github.com/curdeveryday/vscode-m5stack-mpy/raw/master/resources/quick-start-6.png)
 
 ## Uncompleted
+
 - Auto Completion of Units and Modules.
 - Display tips when hover on it.
 
 ## Contributions
+
 To verify changes of this plugin you build the plugin with
+
 ```
 git clean -fdX
 yarn cache clean
 yarn
 ```
+
 Then you start vscode with this directory as argument like this
+
 ```
 code ./
 ```
+
 Then you hit F5 and verify that it works.
 See more on https://code.visualstudio.com/api
