@@ -53,7 +53,6 @@ class PortList {
 
   async selectPorts() {
     let coms = await SerialConnection.getCOMs();
-    coms = coms.filter((com) => com.vendorId === '1a86');
 
     const self = this;
     const portList = coms.map(({ path, manufacturer }) => {
