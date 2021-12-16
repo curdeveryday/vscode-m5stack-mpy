@@ -144,7 +144,8 @@
 		"lint": "eslint src --ext ts",
 		"package": "webpack --mode production --devtool hidden-source-map",
 		"pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
-		"postinstall": "./build.sh",
+		"postinstall": "node serialPortBindingsLoader.js",
+		"rebuild": "node rebuild-serialport.js",
 		"test": "node ./out/test/runTest.js",
 		"vscode:prepublish": "yarn run package",
 		"watch": "webpack --watch",
@@ -167,6 +168,7 @@
 		"eslint-plugin-mocha": "^9.0.0",
 		"eslint-plugin-prettier": "^4.0.0",
 		"mocha": "^9.1.3",
+		"node-fetch": "2",
 		"prettier": "^2.4.1",
 		"ts-loader": "^9.2.5",
 		"typescript": "^4.4.4",
@@ -174,6 +176,6 @@
 		"webpack-cli": "^4.8.0"
 	},
 	"dependencies": {
-		"serialport": "^9.2.7"
+		"serialport": "beta"
 	}
 }
