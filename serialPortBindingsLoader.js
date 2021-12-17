@@ -36,10 +36,51 @@ Example: /node_modules/@serialport/bindings/compiled/14.16.0/darwin/x64/bindings
 version: process.versions.node
 platform: process.platform
 arch: process.arch
-*/
 
+VSCode supported version: ^1.48.0
+
+Tested on: full list of versions https://code.visualstudio.com/updates/
+
+July 2020 (version 1.48)
+August 2020 (version 1.49)
+September 2020 (version 1.50)
+October 2020 (version 1.51)
+November 2020 (version 1.52)
+January 2021 (version 1.53)
+February 2021 (version 1.54)
+March 2021 (version 1.55)
+April 2021 (version 1.56)
+May 2021 (version 1.57)
+June 2021 (version 1.58)
+July 2021 (version 1.59)
+August 2021 (version 1.60)
+September 2021 (version 1.61)
+October 2021 (version 1.62)
+November 2021 (version 1.63)
+
+https://code.visualstudio.com/updates/v1_48
+
+Below corresponding list of NodeJS version used in VSCode compiled version:
+- 14.16.0
+- 12.8.1
+- 12.4.0
+- 12.18.3
+- 12.14.1
+*/
 const copyBindings = () => {
-  const plaformsAndArch = ['darwin-x64', 'linux-x64', 'win32-x32', 'win32-x64'];
+  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0'];
+  const plaformsAndArch = [
+    'darwin-x64',
+    'darwin-arm',
+    'darwin-arm64',
+    'linux-x64',
+    'linux-arm',
+    'linux-arm64',
+    'win32-x32',
+    'win32-x64',
+    'win32-arm',
+    'win32-arm64',
+  ];
   const platformBindingsFolder = path.join(__dirname, './lib/native/');
 
   try {
@@ -47,27 +88,29 @@ const copyBindings = () => {
     fs.unlinkSync(path.join(__dirname, `/node_modules/@serialport/bindings/build/Release/bindings.node`));
   } catch (e) {}
 
-  plaformsAndArch.forEach((p) => {
-    try {
-      const serialportBindingFile = `${platformBindingsFolder}serialport-bindings-${p}.node`;
-      const [platform, arch] = p.split('-');
-      // node version must be vscode compiled version (typescript), available in About panel
-      const destinationFolder = path.join(
-        __dirname,
-        `/node_modules/@serialport/bindings/compiled/${process.versions.node}/${platform}/${arch}/`
-      );
+  nodeJSVersions.forEach((n) => {
+    plaformsAndArch.forEach((p) => {
+      try {
+        const serialportBindingFile = `${platformBindingsFolder}serialport-bindings-${p}.node`;
+        const [platform, arch] = p.split('-');
+        // node version must be vscode compiled version (typescript), available in About panel
+        const destinationFolder = path.join(
+          __dirname,
+          `/node_modules/@serialport/bindings/compiled/${n}/${platform}/${arch}/`
+        );
 
-      // create destination directory
-      if (!fs.existsSync(destinationFolder)) {
-        fs.mkdirSync(destinationFolder, { recursive: true });
+        // create destination directory
+        if (!fs.existsSync(destinationFolder)) {
+          fs.mkdirSync(destinationFolder, { recursive: true });
+        }
+        const destinationFile = `${destinationFolder}bindings.node`;
+
+        fs.copyFileSync(serialportBindingFile, destinationFile);
+        console.log('Finished copying from', serialportBindingFile, 'to', destinationFile);
+      } catch (e) {
+        console.error(e);
       }
-      const destinationFile = `${destinationFolder}bindings.node`;
-
-      fs.copyFileSync(serialportBindingFile, destinationFile);
-      console.log('Finished copying from', serialportBindingFile, 'to', destinationFile);
-    } catch (e) {
-      console.error(e);
-    }
+    });
   });
 };
 
