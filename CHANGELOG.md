@@ -1,5 +1,9 @@
 # Change Log
 
+**1.1.1**
+
+- Fixing regression on opening files + reset device action from main vscode menu
+
 **1.1.0**
 
 - Migration to Typescript
