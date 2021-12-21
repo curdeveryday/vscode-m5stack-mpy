@@ -153,6 +153,24 @@ class PortList {
     await vscode.window.showTextDocument(doc, { preview: false });
   }
 
+  reset() {
+    this._reset();
+  }
+
+  async _reset() {
+    if (vscode.window.activeTextEditor) {
+      const uri = vscode.window.activeTextEditor.document.uri;
+      const args = uri.path.split('/');
+      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
+      let r = await SerialManager.exec(port, 'machine.reset()');
+      if (!r) {
+        vscode.window.showErrorMessage('Reset device failed.');
+      } else {
+        vscode.window.showInformationMessage('Device is resetting.');
+      }
+    }
+  }
+
   async create(ev: any) {
     let filename = await vscode.window.showInputBox({
       placeHolder: 'File Name',

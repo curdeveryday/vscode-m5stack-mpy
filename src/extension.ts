@@ -14,12 +14,14 @@ export function activate(context: vscode.ExtensionContext) {
   const createFile = (ev: any) => portList.create(ev);
   const removeFile = (ev: any) => portList.remove(ev);
   const uploadFile = (ev: any) => portList.upload(ev);
+  const resetDevice = (ev: any) => portList.reset();
   const run = () => portList.run();
 
   context.subscriptions.push(
     vscode.commands.registerCommand('vscode-m5stack-mpyreader.selectPorts', selectPorts, context),
     vscode.commands.registerCommand('m5stack.refreshEntry', refreshTree, context),
     vscode.commands.registerCommand('extension.openSelection', openFile, context),
+    vscode.commands.registerCommand('extension.reset.device', resetDevice, context),
     vscode.commands.registerCommand('m5stack.addEntry', createFile, context),
     vscode.commands.registerCommand('m5stack.deleteEntry', removeFile, context),
     vscode.commands.registerCommand('m5stack.itemUpload', uploadFile, context),
