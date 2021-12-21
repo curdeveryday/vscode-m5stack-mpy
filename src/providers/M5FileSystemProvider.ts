@@ -32,8 +32,8 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
     return [];
   }
 
-  writeFile(uri: vscode.Uri) {
-    this._writeFile(uri);
+  async writeFile(uri: vscode.Uri) {
+    await this._writeFile(uri);
   }
 
   async _writeFile(uri: vscode.Uri) {
