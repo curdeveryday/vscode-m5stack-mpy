@@ -5,6 +5,7 @@ import portList from './ui/PortList';
 
 // Extensions code samples
 // https://github.com/microsoft/vscode-extension-samples
+// https://code.visualstudio.com/api/references/extension-guidelines
 export function activate(context: vscode.ExtensionContext) {
   console.log('Extension "vscode-m5stack-mpy" is now active!');
 
