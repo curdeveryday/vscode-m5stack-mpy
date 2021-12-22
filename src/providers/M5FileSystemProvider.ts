@@ -56,9 +56,7 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
   async saveFile(uri: vscode.Uri, text: string) {
     try {
       this.files[uri.path] = Buffer.from(text);
-      let args = uri.path.split('/');
-      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
-      let filepath = `/${args.slice(2).join('/')}`;
+      const { port, filepath } = getSerialPortAndFileFromUri(uri);
       return await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
