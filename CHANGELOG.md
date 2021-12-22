@@ -1,5 +1,10 @@
 # Change Log
 
+**1.1.3**
+
+- New loader progress bar on File saving + enhancement in communication with device.
+- Exclude non supported files from being opened.
+
 **1.1.1**
 
 - Fixing regression on opening files + reset device action from main vscode menu
