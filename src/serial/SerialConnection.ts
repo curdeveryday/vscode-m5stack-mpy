@@ -7,6 +7,7 @@ const comErroMessage = 'Communication error, sorry.';
 class SerialConnection {
   private com: string;
   private port: SerialPort;
+  private isBusy: boolean = false;
   private resolve: (value: Buffer) => void;
   private reject: (value: any) => void;
   private onOpenCb: (err: unknown) => void;
@@ -32,6 +33,10 @@ class SerialConnection {
     });
   }
 
+  get busy(): boolean {
+    return this.isBusy;
+  }
+
   sendCommand(code: number, data: string): Promise<Buffer> {
     return this.sendCommandWithBuffer(Crc.createDataBuffer(code, data));
   }
@@ -49,6 +54,7 @@ class SerialConnection {
 
   write(data: Buffer): void {
     try {
+      this.isBusy = true;
       this.port.write(data);
       this.port.drain((err) => {
         if (err) {
@@ -57,6 +63,7 @@ class SerialConnection {
         }
       });
     } catch (e) {
+      this.isBusy = false;
       this.reject('write error');
     }
   }
@@ -77,11 +84,13 @@ class SerialConnection {
       } else {
         this.reject(comErroMessage);
       }
+      this.isBusy = false;
     }
   }
 
   onError(err: any): void {
     console.log(err);
+    this.isBusy = false;
   }
 
   onOpen(err: unknown): void {
@@ -93,25 +102,7 @@ class SerialConnection {
 
   close(cb: any) {
     this.port.close(cb);
-  }
-
-  chunk(buf: Buffer, maxBytes: number) {
-    const result = [];
-    while (buf.length) {
-      let i = buf.lastIndexOf(32, maxBytes + 1);
-      // If no space found, try forward search
-      if (i < 0) {
-        i = buf.indexOf(32, maxBytes);
-      }
-      // If there's no space at all, take the whole string
-      if (i < 0) {
-        i = buf.length;
-      }
-      // This is a safe cut-off point; never half-way a multi-byte
-      result.push(buf.slice(0, i));
-      buf = buf.slice(i + 1); // Skip space (if any)
-    }
-    return result;
+    this.isBusy = false;
   }
 }
 

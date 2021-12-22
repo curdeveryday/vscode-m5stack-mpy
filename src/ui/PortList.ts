@@ -8,15 +8,17 @@ import FileTree from './FileTree';
 import StatusBar from './StatusBar';
 import { PickedItem } from './types';
 
-type ImageMapCache = {
+type ResourceMapCache = {
   [key: string]: string;
 };
+
+const supportedTextFileTypes = ['py', 'json', 'txt'];
 
 class PortList {
   private selectedCOMs: PickedItem[];
   // @ts-ignore
   private tree: FileTree;
-  private imageCache: ImageMapCache = {};
+  private resourceCache: ResourceMapCache = {};
   constructor() {
     this.createStatusBar();
     this.selectedCOMs = [];
@@ -27,12 +29,15 @@ class PortList {
       }
     });
 
-    vscode.workspace.onWillSaveTextDocument((e) => {
+    vscode.workspace.onWillSaveTextDocument(async (e) => {
       if (e.document.isDirty) {
         if (e.document.uri.scheme !== 'm5stackfs') {
           return;
         }
-        M5FileSystemProvider.saveFile(e.document.uri, e.document.getText());
+        const result = await M5FileSystemProvider.saveFile(e.document.uri, e.document.getText());
+        if (!result) {
+          vscode.window.showErrorMessage(`Saved ${e.document.uri} failed.`);
+        }
       }
     });
   }
@@ -133,24 +138,34 @@ class PortList {
 
   async _readFile(port: string, filepath: string) {
     const filename = filepath.split('/').slice(-1).toString();
+    const fileExtension = filename.split('.')[1];
     if (/(.jpg)|(.jpeg)|(.bmp)|(.png)|(.gif)/g.test(filename.toLowerCase())) {
       const panel = vscode.window.createWebviewPanel('image', filename, vscode.ViewColumn.One, {});
       panel.webview.html = `<h1>Loading</h1>`;
-      let base64Image = this.imageCache[filepath];
+      let base64Image = this.resourceCache[filepath];
       if (!base64Image) {
         const img = await SerialManager.readFile(port, filepath);
         base64Image = img.toString('base64');
-        this.imageCache[filepath] = base64Image;
+        this.resourceCache[filepath] = base64Image;
       }
 
-      const imageType = filename.split('.')[1];
-      panel.webview.html = `<img src="data:image/${imageType};base64,${base64Image}" />`;
+      panel.webview.html = `<img src="data:image/${fileExtension};base64,${base64Image}" />`;
+      return;
+    }
+    if (!supportedTextFileTypes.includes(fileExtension)) {
+      const panel = vscode.window.createWebviewPanel('not_supported', filename, vscode.ViewColumn.One, {});
+      panel.webview.html = `<h1>Not supported format</h1>`;
       return;
     }
     let uri = vscode.Uri.parse(`m5stackfs:/${port}${filepath}`);
-    await M5FileSystemProvider.writeFile(uri);
-    let doc = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(doc, { preview: false });
+
+    if (!SerialManager.isBusy(port)) {
+      await M5FileSystemProvider.writeFile(uri);
+      let doc = await vscode.workspace.openTextDocument(uri);
+      await vscode.window.showTextDocument(doc, { preview: false });
+    } else {
+      console.log('Device is busy, wait a bit');
+    }
   }
 
   reset() {

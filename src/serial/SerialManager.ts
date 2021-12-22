@@ -5,6 +5,7 @@ type Connections = {
   [key: string]: SerialConnection;
 };
 
+export const MAX_CHUNK_LENGTH = 128;
 class SerialManager {
   private m5: Connections;
 
@@ -24,6 +25,10 @@ class SerialManager {
 
   listDir(com: string, dirname: string): Promise<Buffer> {
     return this.m5[com].sendCommand(COMMAND_CODES.listDir, dirname);
+  }
+
+  isBusy(com: string) {
+    return this.m5[com].busy;
   }
 
   readFile(com: string, filename: string): Promise<Buffer> {
@@ -48,25 +53,43 @@ class SerialManager {
     return this.m5[com].sendCommandWithBuffer(buffer);
   }
 
-  async bulkDownload(com: string, filename: string, content: string | Buffer, isBinary: boolean) {
+  async bulkDownload(
+    com: string,
+    filename: string,
+    content: string | Buffer,
+    isBinary: boolean,
+    progressCb: (chunkIndex: number) => void
+  ): Promise<Buffer> {
     let dataChunks = [];
-    let maxChunkLength = 1024; // * 15;
-    if (content.length > maxChunkLength) {
-      let part = Math.ceil(content.length / maxChunkLength);
+
+    if (content.length > MAX_CHUNK_LENGTH) {
+      let part = Math.ceil(content.length / MAX_CHUNK_LENGTH);
       for (let i = 0; i < part; i++) {
-        dataChunks[i] = content.slice(i * maxChunkLength, maxChunkLength * (i + 1));
+        dataChunks[i] = content.slice(i * MAX_CHUNK_LENGTH, MAX_CHUNK_LENGTH * (i + 1));
       }
     }
 
     if (!dataChunks.length) {
-      return this.download(com, filename, content, 0x01);
+      return this.download(com, filename, content, 0x01); // overwrite
     } else {
       for (let i = 0; i < dataChunks.length; i++) {
         if (i === 0) {
-          const create = await this.download(com, filename, dataChunks[i], 0x01, isBinary);
+          const result = await this.download(com, filename, dataChunks[i], 0x01, isBinary); // overwrite
+          progressCb(i + 1);
+          if (result.toString().indexOf('done') < 0) {
+            return Promise.reject(
+              Buffer.from(`An error occurred while saving ${filename}: ${result.toString()}`)
+            );
+          }
           continue;
         }
-        const append = await this.download(com, filename, dataChunks[i], 0x00, isBinary);
+        const result = await this.download(com, filename, dataChunks[i], 0x00, isBinary); // append
+        if (result.toString().indexOf('done') < 0) {
+          return Promise.reject(
+            Buffer.from(`An error occurred while saving ${filename}: ${result.toString()}`)
+          );
+        }
+        progressCb(i + 1);
       }
     }
 

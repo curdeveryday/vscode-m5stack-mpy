@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import SerialManager from '../serial/SerialManager';
+import SerialManager, { MAX_CHUNK_LENGTH } from '../serial/SerialManager';
+import { getSerialPortAndFileFromUri } from '../utils/vscode';
 
 class M5FileSystemProvider implements vscode.FileSystemProvider {
   constructor() {}
@@ -38,9 +39,7 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
 
   async _writeFile(uri: vscode.Uri) {
     if (!this.files[uri.path]) {
-      let args = uri.path.split('/');
-      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
-      let filepath = `/${args.slice(2).join('/')}`;
+      const { port, filepath } = getSerialPortAndFileFromUri(uri);
       const text = (await SerialManager.readFile(port, filepath)).toString();
       if (text === undefined) {
         vscode.window.showErrorMessage(`Open ${filepath} failed.`);
@@ -55,17 +54,36 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
   delete(uri: vscode.Uri): void {}
 
   async saveFile(uri: vscode.Uri, text: string) {
-    this.files[uri.path] = Buffer.from(text);
-    let args = uri.path.split('/');
-    let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
-    let filepath = `/${args.slice(2).join('/')}`;
-    vscode.window.showWarningMessage(`Saving code, don't close the window.`);
-    let r = await SerialManager.download(port, filepath, text, 0x01);
-    //let r = await SerialManager.bulkDownload(port, filepath, text);
-    if (r.toString().indexOf('done') >= 0) {
-      vscode.window.showInformationMessage(`Saved ${filepath} successfully.`);
-    } else {
-      vscode.window.showErrorMessage(`Saved ${filepath} failed.`);
+    try {
+      this.files[uri.path] = Buffer.from(text);
+      let args = uri.path.split('/');
+      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
+      let filepath = `/${args.slice(2).join('/')}`;
+      return await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          cancellable: false,
+          title: 'Saving code',
+        },
+        async (progress) => {
+          progress.report({ increment: 0 });
+
+          const numChunks = Math.ceil(text.length / MAX_CHUNK_LENGTH);
+
+          let r = await SerialManager.bulkDownload(port, filepath, text, false, (chunkIdx) => {
+            progress.report({ increment: (100 * chunkIdx) / numChunks });
+          });
+
+          if (r.toString().indexOf('done') >= 0) {
+            progress.report({ increment: 100 });
+          }
+
+          return 1;
+        }
+      );
+    } catch (e: any) {
+      console.log('Error while saving', e.toString());
+      return 0;
     }
   }
   removeCache(key: string) {
