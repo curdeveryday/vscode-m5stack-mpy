@@ -1,0 +1,48 @@
+version: 2.1
+orbs:
+  win: circleci/windows@2.4
+jobs:
+  integration-tests-win:
+    executor:
+      name: win/default
+      size: medium
+    steps:
+      - checkout
+      - run:
+          command: |
+            echo Installing dependencies
+            npm install -g typescript
+            yarn
+            echo Running test
+            yarn test
+  integration-tests-linux:
+    machine:
+      image: 'ubuntu-2004:202111-02'
+    steps:
+      - checkout
+      - run:
+          command: |
+            echo Installing dependencies
+            npm install -g typescript
+            yarn
+            echo Running test
+            yarn test
+  # NOT PART OF FREE PLAN
+  # integration-tests-mac:
+  #   macos:
+  #     xcode: '11.3.0'
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         command: |
+  #           echo Installing dependencies
+  #           npm install -g typescript
+  #           yarn
+  #           echo Running test
+  #           yarn test
+workflows:
+  vscode-integration-tests:
+    jobs:
+      - integration-tests-win
+      - integration-tests-linux
+      # - integration-tests-mac
