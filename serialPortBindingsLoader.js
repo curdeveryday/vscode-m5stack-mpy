@@ -41,22 +41,22 @@ VSCode supported version: ^1.48.0
 
 Tested on: full list of versions https://code.visualstudio.com/updates/
 
-July 2020 (version 1.48)
-August 2020 (version 1.49)
-September 2020 (version 1.50)
-October 2020 (version 1.51)
-November 2020 (version 1.52)
-January 2021 (version 1.53)
-February 2021 (version 1.54)
-March 2021 (version 1.55)
-April 2021 (version 1.56)
-May 2021 (version 1.57)
-June 2021 (version 1.58)
-July 2021 (version 1.59)
-August 2021 (version 1.60)
-September 2021 (version 1.61)
-October 2021 (version 1.62)
-November 2021 (version 1.63)
+July 2020 (version 1.48.2)
+August 2020 (version 1.49.3)
+September 2020 (version 1.50.1)
+October 2020 (version 1.51.1)
+November 2020 (version 1.52.1)
+January 2021 (version 1.53.2)
+February 2021 (version 1.54.3)
+March 2021 (version 1.55.2)
+April 2021 (version 1.56.2)
+May 2021 (version 1.57.1)
+June 2021 (version 1.58.2)
+July 2021 (version 1.59.1)
+August 2021 (version 1.60.2)
+September 2021 (version 1.61.2)
+October 2021 (version 1.62.3)
+November 2021 (version 1.63.2)
 
 https://code.visualstudio.com/updates/v1_48
 
