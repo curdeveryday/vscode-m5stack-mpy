@@ -53,10 +53,14 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
 
   delete(uri: vscode.Uri): void {}
 
-  async saveFile(uri: vscode.Uri, text: string) {
+  async saveFile(uri: vscode.Uri, text: string): Promise<number> {
     try {
       this.files[uri.path] = Buffer.from(text);
       const { port, filepath } = getSerialPortAndFileFromUri(uri);
+
+      const numChunks = Math.ceil(text.length / MAX_CHUNK_LENGTH);
+      const increment = +(100 / numChunks).toFixed(2);
+
       return await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -66,10 +70,8 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
         async (progress) => {
           progress.report({ increment: 0 });
 
-          const numChunks = Math.ceil(text.length / MAX_CHUNK_LENGTH);
-
-          let r = await SerialManager.bulkDownload(port, filepath, text, false, (chunkIdx) => {
-            progress.report({ increment: (100 * chunkIdx) / numChunks });
+          let r = await SerialManager.bulkDownload(port, filepath, text, false, () => {
+            progress.report({ increment });
           });
 
           if (r.toString().indexOf('done') >= 0) {
