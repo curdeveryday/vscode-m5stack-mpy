@@ -5,7 +5,7 @@ type Connections = {
   [key: string]: SerialConnection;
 };
 
-export const MAX_CHUNK_LENGTH = 128;
+export const MAX_CHUNK_LENGTH = 2 ** 8; // 256 bytes
 class SerialManager {
   private m5: Connections;
 

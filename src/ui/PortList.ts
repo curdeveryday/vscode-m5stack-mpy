@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import M5FileSystemProvider from '../providers/M5FileSystemProvider';
 import SerialConnection from '../serial/SerialConnection';
-import SerialManager from '../serial/SerialManager';
+import SerialManager, { MAX_CHUNK_LENGTH } from '../serial/SerialManager';
 import FileTree from './FileTree';
 import StatusBar from './StatusBar';
 import { PickedItem } from './types';
@@ -190,7 +190,7 @@ class PortList {
     let filename = await vscode.window.showInputBox({
       placeHolder: 'File Name',
     });
-    if (!filename) {
+    if (!filename || filename.indexOf('.') < 0) {
       return;
     }
     let r = Buffer.from([]);
@@ -212,26 +212,53 @@ class PortList {
     if (!file) {
       return;
     }
-    const filename = file[0].path.split('/').slice(-1).toString();
+    const filename = file[0].path.split('/').slice(-1).toString().trim();
+
+    if (filename.length > 28) {
+      vscode.window.showErrorMessage(`File name is too long (max 28 characters).`);
+    }
+
     const content =
       process.platform === 'win32'
         ? fs.readFileSync(path.join(file[0].path.slice(1)))
         : fs.readFileSync(path.join(file[0].path));
 
-    vscode.window.showWarningMessage(`"${filename}" Uploading, don't close the window.`);
     let r = Buffer.from([]);
-    if (ev.contextValue === 'COM') {
-      r = await SerialManager.download(ev.label, filename, content.toString(), 0x01);
-    } else if (ev.contextValue === 'folder') {
-      r = await SerialManager.download(ev.com, `${ev.parent}/${ev.label}/${filename}`, content, 0x01, false);
+
+    const contextValue = ev.contextValue;
+    const isDirectory = contextValue === 'COM';
+    const port = isDirectory ? ev.label : ev.com;
+    const filepath = isDirectory ? filename : `${ev.parent}/${ev.label}/${filename}`;
+
+    try {
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          cancellable: false,
+          title: `Uploading '${filename}.'`,
+        },
+        async (progress) => {
+          progress.report({ increment: 0 });
+
+          const numChunks = Math.ceil(content.length / MAX_CHUNK_LENGTH);
+          const increment = +(100 / numChunks).toFixed(2);
+
+          let r = await SerialManager.bulkDownload(port, filepath, content, false, () => {
+            progress.report({ increment });
+          });
+
+          if (r.toString().indexOf('done') >= 0) {
+            progress.report({ increment: 100 });
+            M5FileSystemProvider.removeCache(`/${ev.com}${ev.parent}/${ev.label}/${filename}`);
+            this.refreshTree();
+          }
+        }
+      );
+    } catch (e: any) {
+      //vscode.window.showErrorMessage(`Upload "${filename}" failed.`);
+      console.log('Error while uploading', e.toString());
+      vscode.window.showErrorMessage(`Upload failed.`);
     }
-    if (r?.toString().indexOf('done') < 0) {
-      vscode.window.showErrorMessage(`Upload "${filename}" failed.`);
-      return;
-    }
-    vscode.window.showInformationMessage(`Upload "${filename}" successfully.`);
-    M5FileSystemProvider.removeCache(`/${ev.com}${ev.parent}/${ev.label}/${filename}`);
-    this.refreshTree();
   }
 
   async run() {
