@@ -1,5 +1,12 @@
 # Change Log
 
+**1.1.4**
+
+- Fix mistake in progress bar where increment value is summed up and reflected as overall progress until 100% is reached.
+- Display error message when filename is too long
+- Restrict file creation to file only excluding new directories
+- Bump SerialPort version to official release v10
+
 **1.1.3**
 
 - New loader progress bar on File saving + enhancement in communication with device.
