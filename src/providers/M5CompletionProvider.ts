@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { DOCUMENT_URI_SCHEME } from './M5FileSystemProvider';
 const variables: any[] = [];
 
 const startProviderHandler = () => {
@@ -383,11 +384,11 @@ const endProviderHandler = (
 };
 
 export const startProvider = vscode.languages.registerCompletionItemProvider(
-  { scheme: 'm5stackfs', language: 'python' },
+  { scheme: DOCUMENT_URI_SCHEME, language: 'python' },
   { provideCompletionItems: startProviderHandler }
 );
 export const endProvider = vscode.languages.registerCompletionItemProvider(
-  { scheme: 'm5stackfs', language: 'python' },
+  { scheme: DOCUMENT_URI_SCHEME, language: 'python' },
   { provideCompletionItems: endProviderHandler },
   '.'
 );

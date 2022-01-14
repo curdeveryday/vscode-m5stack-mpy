@@ -6,15 +6,15 @@ const comErroMessage = 'Communication error, sorry.';
 
 class SerialConnection {
   private com: string;
-  private port: SerialPort;
+  public port: SerialPort;
   private isBusy: boolean = false;
-  private resolve: (value: Buffer) => void;
-  private reject: (value: any) => void;
+  public resolve: (value: Buffer) => void;
+  public reject: (value: any) => void;
   private onOpenCb: (err: unknown) => void;
   private received: Buffer;
-  constructor(tty: string, onOpenCb: (err: unknown) => void) {
-    this.com = tty;
-    this.port = new SerialPort(tty, defaultOpts);
+  constructor(com: string, onOpenCb: (err: unknown) => void) {
+    this.com = com;
+    this.port = new SerialPort(com, defaultOpts);
     this.port.on('error', this.onError);
     this.port.on('open', this.onOpen.bind(this));
     this.port.on('data', this.onData.bind(this));

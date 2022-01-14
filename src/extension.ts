@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { endProvider, startProvider } from './providers/M5CompletionProvider';
-import M5FileSystemProvider from './providers/M5FileSystemProvider';
+import M5FileSystemProvider, { DOCUMENT_URI_SCHEME } from './providers/M5FileSystemProvider';
 import portList from './ui/PortList';
 
 // Extensions code samples
@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('m5stack.deleteEntry', removeFile, context),
     vscode.commands.registerCommand('m5stack.itemUpload', uploadFile, context),
     vscode.commands.registerCommand('m5stack.itemRun', run, context),
-    vscode.workspace.registerFileSystemProvider('m5stackfs', M5FileSystemProvider),
+    vscode.workspace.registerFileSystemProvider(DOCUMENT_URI_SCHEME, M5FileSystemProvider),
     startProvider,
     endProvider
   );

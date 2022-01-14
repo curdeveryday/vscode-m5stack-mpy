@@ -2,16 +2,20 @@ import * as vscode from 'vscode';
 import SerialManager, { MAX_CHUNK_LENGTH } from '../serial/SerialManager';
 import { getSerialPortAndFileFromUri } from '../utils/vscode';
 
+export const DOCUMENT_URI_SCHEME = 'm5stackfs';
+
 class M5FileSystemProvider implements vscode.FileSystemProvider {
-  constructor() {}
   private files: any = {};
+  private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
+  constructor(private readonly platform: NodeJS.Platform) {
+    this.platform = process.platform;
+  }
+
+  readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
 
   readFile(uri: vscode.Uri) {
     return new Uint8Array(this.files[uri.path]);
   }
-
-  private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
-  readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
 
   watch(): vscode.Disposable {
     // ignore, fires for all changes...
@@ -39,7 +43,7 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
 
   async _writeFile(uri: vscode.Uri) {
     if (!this.files[uri.path]) {
-      const { port, filepath } = getSerialPortAndFileFromUri(uri);
+      const { port, filepath } = getSerialPortAndFileFromUri(uri, this.platform);
       const text = (await SerialManager.readFile(port, filepath)).toString();
       if (text === undefined) {
         vscode.window.showErrorMessage(`Open ${filepath} failed.`);
@@ -56,7 +60,7 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
   async saveFile(uri: vscode.Uri, text: string): Promise<number> {
     try {
       this.files[uri.path] = Buffer.from(text);
-      const { port, filepath } = getSerialPortAndFileFromUri(uri);
+      const { port, filepath } = getSerialPortAndFileFromUri(uri, this.platform);
 
       const numChunks = Math.ceil(text.length / MAX_CHUNK_LENGTH);
       const increment = +(100 / numChunks).toFixed(2);
@@ -91,4 +95,4 @@ class M5FileSystemProvider implements vscode.FileSystemProvider {
   }
 }
 
-export default new M5FileSystemProvider();
+export default new M5FileSystemProvider(process.platform);

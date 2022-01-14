@@ -3,8 +3,8 @@ import SerialManager from '../serial/SerialManager';
 import PortList from './PortList';
 import { PickedItem } from './types';
 
-const RESET = 'Reset';
-const DISCONNECT = 'Disconnect';
+export const RESET = 'Reset';
+export const DISCONNECT = 'Disconnect';
 
 const options = [
   {
@@ -21,6 +21,13 @@ class StatusBar {
   private comList: vscode.StatusBarItem[] = [];
   private comListCommands: vscode.Disposable[] = [];
 
+  constructor() {
+    const item = vscode.window.createStatusBarItem();
+    item.text = `Add M5Stack`;
+    item.command = `vscode-m5stack-mpyreader.selectPorts`;
+    item.show();
+  }
+
   add(com: PickedItem) {
     const item = vscode.window.createStatusBarItem();
     item.text = `${com.label}`;
@@ -31,7 +38,7 @@ class StatusBar {
     try {
       const disposable = vscode.commands.registerCommand(
         `vscode-m5stack-mpyreader.openPort${com.label}`,
-        () => this.selectAction(com.label)
+        () => this._selectAction(com.label)
       );
 
       this.comList.push(item);
@@ -66,7 +73,7 @@ class StatusBar {
     );
   }
 
-  async selectAction(com: string) {
+  async _selectAction(com: string) {
     const deviceSelectedAction = await vscode.window.showQuickPick(options);
     if (!deviceSelectedAction) {
       return;
@@ -90,6 +97,10 @@ class StatusBar {
       default:
         break;
     }
+  }
+
+  get items() {
+    return this.comList;
   }
 }
 
