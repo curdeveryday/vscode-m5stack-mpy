@@ -8,7 +8,7 @@ const CRC_TABLE = [
 export const HEAD_DATA = [0xaa, 0xab, 0xaa];
 
 // Footer delimited data
-const FOOT_DATA = [0xab, 0xcc, 0xab];
+export const FOOT_DATA = [0xab, 0xcc, 0xab];
 
 class Crc {
   /**
@@ -38,10 +38,7 @@ class Crc {
   checkReceiveCompleted(buffer: Buffer): boolean {
     const headBuf = Buffer.from(HEAD_DATA);
     const footBuf = Buffer.from(FOOT_DATA);
-    if (headBuf.compare(buffer.slice(0, 3)) === 0 && footBuf.compare(buffer.slice(-3)) === 0) {
-      return true;
-    }
-    return false;
+    return headBuf.compare(buffer.slice(0, 3)) === 0 && footBuf.compare(buffer.slice(-3)) === 0;
   }
 
   createDataBuffer(commandCode: number, data: string) {

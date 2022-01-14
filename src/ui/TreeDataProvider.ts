@@ -6,16 +6,25 @@ export const FILE = 'file';
 export const FOLDER = 'folder';
 export const COM = 'COM';
 
+export enum Icons {
+  com = 'folder-core.svg',
+  folder = 'folder-resource.svg',
+  python = 'python.svg',
+  image = 'image.svg',
+}
+
+type DeviceContext = typeof FILE | typeof FOLDER | typeof COM;
+
 export class M5FSResource extends vscode.TreeItem {
   public icon: string = '';
-
   constructor(
     public readonly label: string,
     private version: string,
     public parent: string,
     public com: string,
-    public contextValue: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public contextValue: DeviceContext,
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    public command?: vscode.Command
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}-${this.version}`;
@@ -23,23 +32,24 @@ export class M5FSResource extends vscode.TreeItem {
     this.parent = parent;
     this.com = com;
     this.contextValue = contextValue;
+    this.command = command;
 
     switch (contextValue) {
       case FILE: {
         if (this.label.indexOf('.py') > -1) {
-          this.icon = 'python.svg';
+          this.icon = Icons.python;
         }
         if (/(.jpg)|(.jpeg)|(.bmp)|(.png)|(.gif)/g.test(this.label.toLowerCase())) {
-          this.icon = 'image.svg';
+          this.icon = Icons.image;
         }
         break;
       }
       case FOLDER: {
-        this.icon = 'folder-resource.svg';
+        this.icon = Icons.folder;
         break;
       }
       case COM: {
-        this.icon = 'folder-core.svg';
+        this.icon = Icons.com;
         break;
       }
     }
@@ -51,33 +61,33 @@ export class M5FSResource extends vscode.TreeItem {
   }
 }
 
-class M5TreeDataProvider implements vscode.TreeDataProvider<M5FSResource> {
-  constructor(private port: string[]) {}
+export class M5TreeDataProvider implements vscode.TreeDataProvider<M5FSResource> {
+  constructor(private coms: string[]) {}
 
-  getChildren(element: M5FSResource): Thenable<M5FSResource[]> {
-    if (!this.port) {
+  getChildren(element?: M5FSResource): Thenable<M5FSResource[]> {
+    if (!this.coms.length) {
       vscode.window.showInformationMessage('No file in empty root');
       return Promise.resolve([]);
     }
 
     if (!element) {
-      return Promise.resolve(this.getChildrenCom(undefined));
+      return Promise.resolve(this._getChildrenCom(undefined));
     } else {
-      return Promise.resolve(this.getChildrenCom(element));
+      return Promise.resolve(this._getChildrenCom(element));
     }
   }
 
-  async getChildrenCom(element: M5FSResource | undefined): Promise<M5FSResource[]> {
+  async _getChildrenCom(element: M5FSResource | undefined): Promise<M5FSResource[]> {
     const tree: M5FSResource[] = [];
     // Root to display COM devices
     if (!element) {
-      for (let i = 0; i < this.port.length; i++) {
+      for (let i = 0; i < this.coms.length; i++) {
         const comNode = new M5FSResource(
-          this.port[i],
+          this.coms[i],
           '',
           '',
-          this.port[i],
-          'COM',
+          this.coms[i],
+          COM,
           vscode.TreeItemCollapsibleState.Collapsed
         );
         tree.push(comNode);
@@ -87,7 +97,7 @@ class M5TreeDataProvider implements vscode.TreeDataProvider<M5FSResource> {
       // Internal COM devices resources
       const com = element.com;
       let extraPath = element ? element.parent + '/' + element.label : '/flash';
-      if (element.contextValue === 'COM') {
+      if (element.contextValue === COM) {
         extraPath = '/flash';
       }
 
@@ -95,20 +105,13 @@ class M5TreeDataProvider implements vscode.TreeDataProvider<M5FSResource> {
         const dir = (await SerialManager.listDir(com, extraPath)).toString();
         dir.split(',').forEach((dir) => {
           if (!dir) {
-            return;
+            return [];
           }
           const isFile = dir.indexOf('.') > -1;
           const collapsibleState = isFile
             ? vscode.TreeItemCollapsibleState.None
             : vscode.TreeItemCollapsibleState.Collapsed;
-          const node = new M5FSResource(
-            dir,
-            '',
-            extraPath,
-            com,
-            isFile ? 'file' : 'folder',
-            collapsibleState
-          );
+          const node = new M5FSResource(dir, '', extraPath, com, isFile ? FILE : FOLDER, collapsibleState);
           // file open command
           if (isFile) {
             node.command = {
@@ -131,5 +134,3 @@ class M5TreeDataProvider implements vscode.TreeDataProvider<M5FSResource> {
     return element;
   }
 }
-
-export { M5TreeDataProvider };

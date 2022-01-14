@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import M5FileSystemProvider from '../providers/M5FileSystemProvider';
+import M5FileSystemProvider, { DOCUMENT_URI_SCHEME } from '../providers/M5FileSystemProvider';
 import SerialConnection from '../serial/SerialConnection';
 import SerialManager, { MAX_CHUNK_LENGTH } from '../serial/SerialManager';
+import { getSerialPortAndFileFromUri } from '../utils/vscode';
 import FileTree from './FileTree';
 import StatusBar from './StatusBar';
 import { PickedItem } from './types';
@@ -15,23 +16,24 @@ type ResourceMapCache = {
 const supportedTextFileTypes = ['py', 'json', 'txt'];
 
 class PortList {
-  private selectedCOMs: PickedItem[];
+  private selectedCOMs: PickedItem[] = [];
   // @ts-ignore
   private tree: FileTree;
   private resourceCache: ResourceMapCache = {};
   constructor() {
-    this.createStatusBar();
-    this.selectedCOMs = [];
+    this._registerWorkspaceListeners();
+  }
 
+  _registerWorkspaceListeners() {
     vscode.workspace.onDidOpenTextDocument((e) => {
-      if (e.uri.scheme !== 'm5stackfs') {
+      if (e.uri.scheme !== DOCUMENT_URI_SCHEME) {
         return;
       }
     });
 
     vscode.workspace.onWillSaveTextDocument(async (e) => {
       if (e.document.isDirty) {
-        if (e.document.uri.scheme !== 'm5stackfs') {
+        if (e.document.uri.scheme !== DOCUMENT_URI_SCHEME) {
           return;
         }
         const result = await M5FileSystemProvider.saveFile(e.document.uri, e.document.getText());
@@ -40,13 +42,6 @@ class PortList {
         }
       }
     });
-  }
-
-  createStatusBar() {
-    const item = vscode.window.createStatusBarItem();
-    item.text = `Add M5Stack`;
-    item.command = `vscode-m5stack-mpyreader.selectPorts`;
-    item.show();
   }
 
   removeSelectedComs(com: string) {
@@ -157,7 +152,7 @@ class PortList {
       panel.webview.html = `<h1>Not supported format</h1>`;
       return;
     }
-    let uri = vscode.Uri.parse(`m5stackfs:/${port}${filepath}`);
+    let uri = vscode.Uri.parse(`${DOCUMENT_URI_SCHEME}:/${port}${filepath}`);
 
     if (!SerialManager.isBusy(port)) {
       await M5FileSystemProvider.writeFile(uri);
@@ -176,9 +171,10 @@ class PortList {
     if (vscode.window.activeTextEditor) {
       const uri = vscode.window.activeTextEditor.document.uri;
       const args = uri.path.split('/');
-      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
-      let r = await SerialManager.exec(port, 'machine.reset()');
-      if (!r) {
+      const port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
+      const r = await SerialManager.exec(port, 'machine.reset()');
+
+      if (r?.toString().indexOf('done') < 0) {
         vscode.window.showErrorMessage('Reset device failed.');
       } else {
         vscode.window.showInformationMessage('Device is resetting.');
@@ -218,19 +214,17 @@ class PortList {
       vscode.window.showErrorMessage(`File name is too long (max 28 characters).`);
     }
 
-    const content =
-      process.platform === 'win32'
-        ? fs.readFileSync(path.join(file[0].path.slice(1)))
-        : fs.readFileSync(path.join(file[0].path));
-
-    let r = Buffer.from([]);
-
-    const contextValue = ev.contextValue;
-    const isDirectory = contextValue === 'COM';
-    const port = isDirectory ? ev.label : ev.com;
-    const filepath = isDirectory ? filename : `${ev.parent}/${ev.label}/${filename}`;
-
     try {
+      const content =
+        process.platform === 'win32'
+          ? fs.readFileSync(path.join(file[0].path.slice(1)))
+          : fs.readFileSync(path.join(file[0].path));
+
+      const contextValue = ev.contextValue;
+      const isDirectory = contextValue === 'COM';
+      const port = isDirectory ? ev.label : ev.com;
+      const filepath = isDirectory ? filename : `${ev.parent}/${ev.label}/${filename}`;
+
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -255,7 +249,6 @@ class PortList {
         }
       );
     } catch (e: any) {
-      //vscode.window.showErrorMessage(`Upload "${filename}" failed.`);
       console.log('Error while uploading', e.toString());
       vscode.window.showErrorMessage(`Upload failed.`);
     }
@@ -263,13 +256,11 @@ class PortList {
 
   async run() {
     if (vscode.window.activeTextEditor) {
-      const uri = vscode.window.activeTextEditor.document.uri;
-      let text = vscode.window.activeTextEditor.document.getText();
-      let args = uri.path.split('/');
-      let port = process.platform === 'win32' ? args[1] : `/dev/${args[1]}`;
-      const filename = args[args.length - 1].split('.')[0];
-      let r = await SerialManager.exec(port, text);
-      // let r = await SerialManager.exec(port, `import ${filename}`);
+      const document = vscode.window.activeTextEditor.document;
+      const uri = document.uri;
+      const text = document.getText();
+      const { port } = getSerialPortAndFileFromUri(uri, process.platform);
+      const r = await SerialManager.exec(port, text);
       if (r?.toString().indexOf('done') < 0) {
         vscode.window.showErrorMessage('Run failed.');
       } else {

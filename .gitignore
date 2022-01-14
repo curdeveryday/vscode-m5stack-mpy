@@ -3,6 +3,7 @@ out/
 node_modules
 yarn-error.log
 build/
+coverage/
 dist/
 *.code-workspace
 .DS_Store
