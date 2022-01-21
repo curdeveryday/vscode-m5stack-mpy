@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { endProvider, startProvider } from './providers/M5CompletionProvider';
+import { endProvider, startProvider } from './providers/completion/M5CompletionProvider';
+import { hoverProvider } from './providers/hover/M5HoverProvider';
 import M5FileSystemProvider, { DOCUMENT_URI_SCHEME } from './providers/M5FileSystemProvider';
 import portList from './ui/PortList';
 
@@ -29,7 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('m5stack.itemRun', run, context),
     vscode.workspace.registerFileSystemProvider(DOCUMENT_URI_SCHEME, M5FileSystemProvider),
     startProvider,
-    endProvider
+    endProvider,
+    hoverProvider
   );
 }
 
