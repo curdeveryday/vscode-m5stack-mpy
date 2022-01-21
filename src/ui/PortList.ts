@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import M5FileSystemProvider, { DOCUMENT_URI_SCHEME } from '../providers/M5FileSystemProvider';
 import SerialConnection from '../serial/SerialConnection';
 import SerialManager, { MAX_CHUNK_LENGTH } from '../serial/SerialManager';
+import { trimComments } from '../utils/text';
 import { getSerialPortAndFileFromUri } from '../utils/vscode';
 import FileTree from './FileTree';
 import StatusBar from './StatusBar';
@@ -115,13 +116,22 @@ class PortList {
       },
       'Yes'
     );
+    const filepath = `${_ev.parent}/${_ev.label}`;
     if (confirm === 'Yes') {
       let r = await SerialManager.removeFile(_ev.com, `${_ev.parent}/${_ev.label}`);
       if (!r) {
-        vscode.window.showErrorMessage(`Delete file "${_ev.label}" failed.`);
+        vscode.window.showErrorMessage(`Deleting file "${_ev.label}" failed.`);
         return;
       }
-      vscode.window.showInformationMessage(`Delete file "${_ev.label}" successfully.`);
+
+      const visibleTextEditors = vscode.window.visibleTextEditors;
+      visibleTextEditors.forEach((editor) => {
+        if (editor.document.fileName.indexOf(filepath) >= 0) {
+          editor.hide();
+        }
+      });
+
+      vscode.window.showInformationMessage(`File "${_ev.label}" deleted successfully.`);
 
       this.tree = new FileTree(this.selectedCOMs);
     }
@@ -258,7 +268,8 @@ class PortList {
     if (vscode.window.activeTextEditor) {
       const document = vscode.window.activeTextEditor.document;
       const uri = document.uri;
-      const text = document.getText();
+      const text = trimComments(document.getText());
+      console.log('executing following code', text);
       const { port } = getSerialPortAndFileFromUri(uri, process.platform);
       const r = await SerialManager.exec(port, text);
       if (r?.toString().indexOf('done') < 0) {
