@@ -57,8 +57,10 @@ August 2021 (version 1.60.2)
 September 2021 (version 1.61.2)
 October 2021 (version 1.62.3)
 November 2021 (version 1.63.2)
-
-https://code.visualstudio.com/updates/v1_48
+January 2022 (version 1.64) (NodeJS - 14.16.0)
+February 2022 (version 1.65) (NodeJS - 14.16.0)
+March 2022 (version 1.66) (NodeJS - 16.13.0)
+April 2022 (version 1.67) (NodeJS - 16.13.0)
 
 Below corresponding list of NodeJS version used in VSCode compiled version:
 - 14.16.0
@@ -68,7 +70,7 @@ Below corresponding list of NodeJS version used in VSCode compiled version:
 - 12.14.1
 */
 const copyBindings = () => {
-  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0'];
+  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0', '16.13.0'];
   const plaformsAndArch = [
     'darwin-x64',
     'darwin-arm',
