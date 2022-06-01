@@ -1,5 +1,9 @@
 # Change Log
 
+**1.1.5**
+
+- Adds support for vscode 1.66 and 1.67
+
 **1.1.4**
 
 - Fix mistake in progress bar where increment value is summed up and reflected as overall progress until 100% is reached.
