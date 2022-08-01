@@ -1,5 +1,17 @@
 # Change Log
 
+**1.1.8**
+
+- Rebuild Serialport
+
+**1.1.7**
+
+- Rebuild Serialport
+
+**1.1.6**
+
+- Rebuild Serialport
+
 **1.1.5**
 
 - Adds support for vscode 1.66 and 1.67
