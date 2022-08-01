@@ -24,7 +24,7 @@ const getVsCodeElectionVersion = async () => {
     return Promise.resolve(matches.groups.version);
   }
 
-  return Promise.resolve('13.5.4');
+  return Promise.resolve('18.3.5');
 };
 
 /**
