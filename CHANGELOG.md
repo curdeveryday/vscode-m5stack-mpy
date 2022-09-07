@@ -1,5 +1,9 @@
 # Change Log
 
+**1.1.9**
+
+- Rebuild Serialport
+
 **1.1.8**
 
 - Rebuild Serialport

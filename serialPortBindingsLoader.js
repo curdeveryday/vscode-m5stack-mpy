@@ -70,7 +70,7 @@ Below corresponding list of NodeJS version used in VSCode compiled version:
 - 12.14.1
 */
 const copyBindings = () => {
-  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0', '16.13.0', '16.13.2'];
+  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0', '16.13.0', '16.13.2', '16.14.2'];
   const plaformsAndArch = [
     'darwin-x64',
     'darwin-arm',
