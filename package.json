@@ -180,6 +180,6 @@
 		"webpack-cli": "^4.8.0"
 	},
 	"dependencies": {
-		"serialport": "10.0.1"
+		"serialport": "10.4.0"
 	}
 }

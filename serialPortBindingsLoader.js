@@ -61,6 +61,7 @@ January 2022 (version 1.64) (NodeJS - 14.16.0)
 February 2022 (version 1.65) (NodeJS - 14.16.0)
 March 2022 (version 1.66) (NodeJS - 16.13.0)
 April 2022 (version 1.67) (NodeJS - 16.13.0)
+March 2023 (version 1.78.2) (NodeJS 16.17.1)
 
 Below corresponding list of NodeJS version used in VSCode compiled version:
 - 14.16.0
@@ -70,7 +71,7 @@ Below corresponding list of NodeJS version used in VSCode compiled version:
 - 12.14.1
 */
 const copyBindings = () => {
-  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0', '16.13.0', '16.13.2', '16.14.2'];
+  const nodeJSVersions = ['12.14.1', '12.18.3', '12.4.0', '12.8.1', '14.16.0', '16.13.0', '16.13.2', '16.14.2', '16.17.1'];
   const plaformsAndArch = [
     'darwin-x64',
     'darwin-arm',
