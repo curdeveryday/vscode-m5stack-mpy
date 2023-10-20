@@ -62,3 +62,16 @@ code ./
 
 Then you hit F5 and verify that it works.
 See more on https://code.visualstudio.com/api
+
+## Install extention from compiled source
+
+Install the vs code page tool...
+```
+npm install -g vsce
+```
+
+Create and install the package...
+```
+vsce package
+code --install-extension vscode-m5stack-mpy-1.1.10.vsix 
+```
