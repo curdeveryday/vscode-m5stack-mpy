@@ -65,7 +65,7 @@ See more on https://code.visualstudio.com/api
 
 ## Install extention from compiled source
 
-Install the vs code page tool...
+Install the vs code extension packaging tool...
 ```
 npm install -g vsce
 ```
